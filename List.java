@@ -35,7 +35,16 @@ public class List {
     
     /** GIVE Textual representation of this list. */
     public String toString() {
-        return "" + first;
+        Node currentNode = first;
+        String string = "";
+        while(currentNode != null){ 
+            string += currentNode.cp.toString();
+            currentNode = currentNode.next;
+            if (currentNode != null) {
+                string += " ";
+            }
+        }
+        return string;
     }
 
     /** Returns the index of the first CharData object in this list
