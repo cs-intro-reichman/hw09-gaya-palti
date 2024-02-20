@@ -36,7 +36,7 @@ public class List {
     /** GIVE Textual representation of this list. */
     public String toString() {
         Node currentNode = first;
-        String string = "";
+        String string = "()";
         while(currentNode != null){ 
             string += currentNode.cp.toString();
             currentNode = currentNode.next;
@@ -44,7 +44,7 @@ public class List {
                 string += " ";
             }
         }
-        return string;
+        return string + ")";
     }
 
     /** Returns the index of the first CharData object in this list
