@@ -33,18 +33,66 @@ public class LanguageModel {
 
     /** Builds a language model from the text in the given file (the corpus). */
 	public void train(String fileName) {
-		// Your code goes here
+        String window = "";
+        char c;
+        In in = new In(fileName);
+        // Reads just enough characters to form the first window
+        for (int i = 0; i < this.windowLength; i++) {
+            window += in.readChar();
+        }
+        // Processes the entire text, one character at a time
+        while (!in.isEmpty()) {
+            // Gets the next character
+            c = in.readChar();
+            // Checks if the window is already in the map
+            if(!CharDataMap.containsKey(window)){
+                CharDataMap.put(window, new List());
+            }
+            CharDataMap.get(window).update(c);
+        
+            // Advances the window: adds c to the window’s end, and deletes the
+            // window's first character.
+            window = window.substring(1) + c;
+        }
+        // The entire file has been processed, and all the characters have been counted.
+        // Proceeds to compute and set the p and cp fields of all the CharData objects
+        // in each linked list in the map.
+        for (List probs : CharDataMap.values()) {
+            calculateProbabilities(probs);
+        }
 	}
 
     // Computes and sets the probabilities (p and cp fields) of all the
 	// characters in the given list. */
 	public void calculateProbabilities(List probs) {				
-		// Your code goes here
+		ListIterator itr = probs.listIterator(0);
+        int totalChars = 0;
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            totalChars += current.count;
+        }
+
+        double prevCp = 0;
+		itr = probs.listIterator(0);
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            current.p = current.count * 1.0 / totalChars;
+            current.cp = prevCp + current.p;
+            prevCp = current.cp;
+        }        
 	}
 
     // Returns a random character from the given probabilities list.
 	public char getRandomChar(List probs) {
-		// Your code goes here
+		double r = randomGenerator.nextDouble();
+		ListIterator itr = probs.listIterator(0);
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            if (r < current.cp){
+                return current.chr;
+            }
+        }
+        throw new IndexOutOfBoundsException("not suppose to get here");
 	}
 
     /**
@@ -55,7 +103,17 @@ public class LanguageModel {
 	 * @return the generated text
 	 */
 	public String generate(String initialText, int textLength) {
-		// Your code goes here
+		String window = initialText.substring(initialText.length() - windowLength);
+        String result = initialText;
+        while (result.length() < textLength) {
+            if (!CharDataMap.containsKey(window)){
+                return result;
+            }
+            char randomChar = getRandomChar(CharDataMap.get(window));
+            result += randomChar;
+            window = window.substring(1)+ randomChar;
+        }
+        return result;
 	}
 
     /** Returns a string representing the map of this language model. */
@@ -69,6 +127,72 @@ public class LanguageModel {
 	}
 
     public static void main(String[] args) {
-		// Your code goes here
+        int windowLength = Integer.parseInt(args[0]);
+        String initialText = args[1];
+        int generatedTextLength = Integer.parseInt(args[2]);
+        Boolean randomGeneration = args[3].equals("random");
+        String fileName = args[4];
+        // Create the LanguageModel object
+        LanguageModel lm;
+        if (randomGeneration)
+            lm = new LanguageModel(windowLength);
+        else
+            lm = new LanguageModel(windowLength, 20);
+        // Trains the model, creating the map.
+        lm.train(fileName);
+        // Generates text, and prints it.
+        System.out.println(lm.generate(initialText, generatedTextLength));
+
+        /*
+        // in this test we run the get random char a lot of times and cheking if we ger the expected results.
+        List testList = new List();
+        String testString = "committee_";
+        for (int i = 0; i < testString.length(); i++){
+            testList.update(testString.charAt(i));
+        }
+        LanguageModel newMode = new LanguageModel(0);
+        newMode.calculateProbabilities(testList);
+        int c = 0;
+        int o = 0;
+        int m = 0;
+        int i_ = 0;
+        int t = 0;
+        int e = 0;
+        int a_ = 0;
+        int total = 0;
+        for (int i = 0; i < 10000; i++) {
+            total++;
+            switch (newMode.getRandomChar(testList)) {
+                case 'c':
+                    c++;
+                    break;
+                case 'o':
+                    o++;
+                    break;
+                case 'm':
+                    m++;
+                    break;
+                case 'i':
+                    i_++;
+                    break;
+                case 't':
+                    t++;
+                    break;
+                case 'e':
+                    e++;
+                    break;
+                case '_':
+                    a_++;
+                    break;           
+            }
+        }
+        System.out.println("c: " + (double) c/total);
+        System.out.println("o: " + (double) o/total);
+        System.out.println("m: " + (double) m/total);
+        System.out.println("i: " + (double) i_/total);
+        System.out.println("t: " + (double) t/total);
+        System.out.println("e: " + (double) e/total);
+        System.out.println("_: " + (double) a_/total);
+        */
     }
 }
