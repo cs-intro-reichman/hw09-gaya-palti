@@ -103,8 +103,17 @@ public class LanguageModel {
 	 * @return the generated text
 	 */
 	public String generate(String initialText, int textLength) {
-		// Your code goes here
-        return "";
+		String window = initialText.substring(initialText.length() - windowLength);
+        String result = initialText;
+        while (result.length() < textLength) {
+            if (!CharDataMap.containsKey(window)){
+                return result;
+            }
+            char randomChar = getRandomChar(CharDataMap.get(window));
+            result += randomChar;
+            window = window.substring(1)+ randomChar;
+        }
+        return result;
 	}
 
     /** Returns a string representing the map of this language model. */
@@ -118,6 +127,23 @@ public class LanguageModel {
 	}
 
     public static void main(String[] args) {
+        int windowLength = Integer.parseInt(args[0]);
+        String initialText = args[1];
+        int generatedTextLength = Integer.parseInt(args[2]);
+        Boolean randomGeneration = args[3].equals("random");
+        String fileName = args[4];
+        // Create the LanguageModel object
+        LanguageModel lm;
+        if (randomGeneration)
+            lm = new LanguageModel(windowLength);
+        else
+            lm = new LanguageModel(windowLength, 20);
+        // Trains the model, creating the map.
+        lm.train(fileName);
+        // Generates text, and prints it.
+        System.out.println(lm.generate(initialText, generatedTextLength));
+
+        /*
         // in this test we run the get random char a lot of times and cheking if we ger the expected results.
         List testList = new List();
         String testString = "committee_";
@@ -167,6 +193,6 @@ public class LanguageModel {
         System.out.println("t: " + (double) t/total);
         System.out.println("e: " + (double) e/total);
         System.out.println("_: " + (double) a_/total);
-
+        */
     }
 }
