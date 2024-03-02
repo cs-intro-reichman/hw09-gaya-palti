@@ -39,12 +39,34 @@ public class LanguageModel {
     // Computes and sets the probabilities (p and cp fields) of all the
 	// characters in the given list. */
 	public void calculateProbabilities(List probs) {				
-		// Your code goes here
+		ListIterator itr = probs.listIterator(0);
+        int totalChars = 0;
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            totalChars += current.count;
+        }
+
+        double prevCp = 0;
+		itr = probs.listIterator(0);
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            current.p = current.count * 1.0 / totalChars;
+            current.cp = prevCp + current.p;
+            prevCp = current.cp;
+        }        
 	}
 
     // Returns a random character from the given probabilities list.
 	public char getRandomChar(List probs) {
-		// Your code goes here
+		double r = randomGenerator.nextDouble();
+		ListIterator itr = probs.listIterator(0);
+        while (itr.hasNext()) {
+            CharData current = itr.next();
+            if (r < current.cp){
+                return current.chr;
+            }
+        }
+        throw new IndexOutOfBoundsException("not suppose to get here");
 	}
 
     /**
@@ -56,6 +78,7 @@ public class LanguageModel {
 	 */
 	public String generate(String initialText, int textLength) {
 		// Your code goes here
+        return "";
 	}
 
     /** Returns a string representing the map of this language model. */
@@ -69,6 +92,55 @@ public class LanguageModel {
 	}
 
     public static void main(String[] args) {
-		// Your code goes here
+        // in this test we run the get random char a lot of times and cheking if we ger the expected results.
+        List testList = new List();
+        String testString = "committee_";
+        for (int i = 0; i < testString.length(); i++){
+            testList.update(testString.charAt(i));
+        }
+        LanguageModel newMode = new LanguageModel(0);
+        newMode.calculateProbabilities(testList);
+        int c = 0;
+        int o = 0;
+        int m = 0;
+        int i_ = 0;
+        int t = 0;
+        int e = 0;
+        int a_ = 0;
+        int total = 0;
+        for (int i = 0; i < 10000; i++) {
+            total++;
+            switch (newMode.getRandomChar(testList)) {
+                case 'c':
+                    c++;
+                    break;
+                case 'o':
+                    o++;
+                    break;
+                case 'm':
+                    m++;
+                    break;
+                case 'i':
+                    i_++;
+                    break;
+                case 't':
+                    t++;
+                    break;
+                case 'e':
+                    e++;
+                    break;
+                case '_':
+                    a_++;
+                    break;           
+            }
+        }
+        System.out.println("c: " + (double) c/total);
+        System.out.println("o: " + (double) o/total);
+        System.out.println("m: " + (double) m/total);
+        System.out.println("i: " + (double) i_/total);
+        System.out.println("t: " + (double) t/total);
+        System.out.println("e: " + (double) e/total);
+        System.out.println("_: " + (double) a_/total);
+
     }
 }
